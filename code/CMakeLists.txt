@@ -39,6 +39,10 @@ ExternalProject_Get_Property(gtest source_dir binary_dir)
 set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES src/uebung1/main.cpp)
-add_executable(pira-code ${SOURCE_FILES})
+add_executable(uebung1 ${SOURCE_FILES})
+
+set(SOURCE_FILES src/uebung2/main.cpp)
+add_executable(uebung2 ${SOURCE_FILES})
+
 
 
