@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 3.0)
 project(pira-code)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 ##################################
 # Download and install GoogleTest
 
@@ -35,9 +39,24 @@ ExternalProject_Get_Property(gtest source_dir binary_dir)
 #        COMMAND registerer_test)
 
 set(CMAKE_CXX_STANDARD 11)
+add_compile_options(-std=c++11)
 
-set(SOURCE_FILES src/uebung1/main.cpp)
-add_executable(uebung1 ${SOURCE_FILES})
+set(SOURCE_FILES src/uebung1/once.cpp)
+add_executable(uebung1-1a ${SOURCE_FILES})
+
+set(SOURCE_FILES src/uebung1/twice.cpp)
+add_executable(uebung1-1b ${SOURCE_FILES})
+
+set(SOURCE_FILES src/uebung1/threaded.cpp)
+add_executable(uebung1-1c ${SOURCE_FILES})
+
+find_package(Threads REQUIRED)
+if(THREADS_HAVE_PTHREAD_ARG)
+    target_compile_options(PUBLIC uebung1-1c "-pthread")
+endif()
+if(CMAKE_THREAD_LIBS_INIT)
+    target_link_libraries(uebung1-1c "${CMAKE_THREAD_LIBS_INIT}")
+endif()
 
 set(SOURCE_FILES src/uebung2/main.cpp)
 add_executable(uebung2 ${SOURCE_FILES})

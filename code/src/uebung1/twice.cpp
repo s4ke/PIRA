@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-const long N = 4999999999;
+const long N = 999999999;
 
 long sumUp(long N) {
     long sum = 0;
@@ -12,10 +12,14 @@ long sumUp(long N) {
 }
 
 int main(int argc, char** argv) {
+    std::cout << "running sumUp twice" << std::endl;
     if(argc <= 1) {
         std::cout << "using default value for N: " << N << std::endl << std::flush;
+
+        std::cout << "sum from 1 to " << N << " is " << sumUp(N) << std::endl;
         std::cout << "sum from 1 to " << N << " is " << sumUp(N) << std::endl;
     } else {
+        std::cout << "sum from 1 to " << argv[1] << " is " << sumUp(atol(argv[1])) << std::endl;
         std::cout << "sum from 1 to " << argv[1] << " is " << sumUp(atol(argv[1])) << std::endl;
     }
     return 0;

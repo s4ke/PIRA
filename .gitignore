@@ -33,4 +33,7 @@ cmake-build-debug/
 
 code/gtest
 code/CMakeFiles
+code/Makefile
+code/CMakeCache.txt
+code/cmake_install.cmake
 
