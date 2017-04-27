@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     threads.reserve(coreCount);
 
     for (int i = 0; i < coreCount; ++i) {
-        threads.emplace_back( run, actualN ) ;
+        threads.emplace_back(run, actualN);
     }
 
     for (auto &t : threads) {
