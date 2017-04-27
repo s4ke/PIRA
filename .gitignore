@@ -31,4 +31,6 @@ cmake-build-debug/
 *.out
 *.app
 
+code/gtest
+code/CMakeFiles
 
