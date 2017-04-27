@@ -23,7 +23,12 @@
 *.a
 *.lib
 
+cmake-build-debug/
+*/cmake-build-debug/
+.idea/
 # Executables
 *.exe
 *.out
 *.app
+
+
