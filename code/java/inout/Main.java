@@ -22,6 +22,9 @@
  SOFTWARE.
  */
 
+//compile with: javac Main.java
+//run with java Main
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
