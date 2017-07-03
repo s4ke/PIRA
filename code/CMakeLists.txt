@@ -39,6 +39,15 @@ endif()
 set(SOURCE_FILES src/uebung2/main.cpp)
 add_executable(uebung2 ${SOURCE_FILES})
 
+set(SOURCE_FILES src/uebung9/uebung9-1.cpp)
+add_executable(uebung9 ${SOURCE_FILES})
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "-O0")
+endif()
+
+
+
 ################
 # Define a test
 #add_executable(registerer_test registerer_test.cc)
