@@ -147,7 +147,6 @@ long bench(quicksort_fn quicksrt, bool print) {
     {
         auto start = std::chrono::high_resolution_clock::now();
 
-#pragma omp single
         quicksrt(A, 0, N - 1, rng);
 
         auto finish = std::chrono::high_resolution_clock::now();
@@ -173,6 +172,7 @@ long bench(quicksort_fn quicksrt, bool print) {
 int main() {
 #pragma omp parallel
     {
+#pragma omp single
         long seq = bench(quicksort, false);
         //long par = bench(quicksort_par, false);
         long cutoff = bench(quicksort_cutoff, false);
