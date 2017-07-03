@@ -22,8 +22,8 @@ int main() {
     for (int z = 0; z < loopCount; ++z) {
         auto start = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < n; ++j) {
-                for (int k = 0; k < n; ++k) {
+            for (int k = 0; k < n; ++k) {
+                for (int j = 0; j < n; ++j) {
                     C[i * n + j] += A[i * n + k] * B[k * n + j];
                 }
             }
