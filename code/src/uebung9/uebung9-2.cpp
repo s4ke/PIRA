@@ -2,23 +2,30 @@
 #include <random>
 #include <chrono>
 #include <vector>
+#include <omp.h>
+#include <assert.h>
 
 int tasks_spawned = 0;
-const int CUTOFF = 100000;
+
+const int CUTOFF = 1000;
+
 std::vector<long> task_times();
 
-int get_random_pivot(std::mt19937 &rng, int min, int max) {
+int get_random_pivot(std::mt19937 &rng, int min, int max)
+{
     std::uniform_int_distribution<std::mt19937::result_type> dist(min, max);
     return dist(rng);
 }
 
-void swap(int *A, int first, int second) {
+void swap(int *A, int first, int second)
+{
     int tmp = A[first];
     A[first] = A[second];
     A[second] = tmp;
 }
 
-void quicksort(int *A, int left, int right, std::mt19937 rng) {
+void quicksort(int *A, int left, int right, std::mt19937 rng)
+{
     int i, last, n, PIVOT = get_random_pivot(rng, 0, right - left);
 
     n = right - left + 1;
@@ -36,11 +43,12 @@ void quicksort(int *A, int left, int right, std::mt19937 rng) {
     // Move pivot to its final place
     swap(A, left, last);
 
-    quicksort(A, left, last, rng);
+    quicksort(A, left, last - 1, rng);
     quicksort(A, last + 1, right, rng);
 }
 
-void quicksort_par(int *A, int left, int right, std::mt19937 rng) {
+void quicksort_par(int *A, int left, int right, std::mt19937 rng)
+{
     int i, last, n, PIVOT = get_random_pivot(rng, 0, right - left);
 
     n = right - left + 1;
@@ -60,22 +68,20 @@ void quicksort_par(int *A, int left, int right, std::mt19937 rng) {
 
 #pragma omp task
     {
-        //auto start = std::chrono::high_resolution_clock::now();
-        quicksort_par(A, left, last, rng);
-        //auto finish = std::chrono::high_resolution_clock::now();
-        //std::cout << "Thread #" << tasks_spawned + 1 << " ran for " << std::chrono::duration_cast<std::chrono::nanoseconds>(finish - start).count() << "ms" << std::endl;
+        quicksort_par(A, left, last - 1, rng);
     };
     ++tasks_spawned;
 
-    //auto start = std::chrono::high_resolution_clock::now();
-    quicksort_par(A, last + 1, right, rng);
-    //auto finish = std::chrono::high_resolution_clock::now();
-    //std::cout << "Thread #" << tasks_spawned + 1 << " ran for " << std::chrono::duration_cast<std::chrono::nanoseconds>(finish - start).count() << "ms" << std::endl;
+#pragma omp task
+    {
+        quicksort_par(A, last + 1, right, rng);
+    }
 
 #pragma omp taskwait
 }
 
-void quicksort_cutoff(int *A, int left, int right, std::mt19937 rng) {
+void quicksort_cutoff(int *A, int left, int right, std::mt19937 rng)
+{
     int i, last, n, PIVOT = get_random_pivot(rng, 0, right - left);
 
     n = right - left + 1;
@@ -93,28 +99,29 @@ void quicksort_cutoff(int *A, int left, int right, std::mt19937 rng) {
     // Move pivot to its final place
     swap(A, left, last);
 
-    if(last-left > CUTOFF)
-    {
-        #pragma omp task
+    if (last - left > CUTOFF) {
+#pragma omp task
         {
-            quicksort_cutoff(A, left, last, rng);
+            quicksort_cutoff(A, left, last - 1, rng);
         };
         ++tasks_spawned;
     }
-    else
-    {
-        quicksort(A, left, last, rng);
+    else {
+        quicksort(A, left, last - 1, rng);
     }
 
-    if(right-last+1 > CUTOFF) {
+    if (right - last + 1 > CUTOFF) {
         quicksort_cutoff(A, last + 1, right, rng);
+    }
+    else {
+        quicksort(A, last + 1, right, rng);
     }
 
 #pragma omp taskwait
 }
 
-
-void random_init_array(int *A, int array_length, std::mt19937 &rng) {
+void random_init_array(int *A, int array_length, std::mt19937 &rng)
+{
     std::uniform_int_distribution<std::mt19937::result_type> dist(0, 999999);
     for (int i = 0; i < array_length; ++i) {
         A[i] = dist(rng);
@@ -123,7 +130,20 @@ void random_init_array(int *A, int array_length, std::mt19937 &rng) {
 
 typedef void(*quicksort_fn)(int *, int, int, std::mt19937);
 
-long bench(quicksort_fn quicksrt, bool print) {
+bool is_sorted(int *A, int length)
+{
+    int last = A[0];
+    for (int i = 1; i < length; ++i) {
+        if (A[i] < last) {
+            return false;
+        }
+        last = A[i];
+    }
+    return true;
+}
+
+long bench(quicksort_fn quicksrt, bool print)
+{
     long time;
 
     std::mt19937 rng(12354);
@@ -132,18 +152,6 @@ long bench(quicksort_fn quicksrt, bool print) {
 
     random_init_array(A, N, rng);
 
-    if (print) {
-        std::cout << "A: " << std::endl;
-        std::cout << "(";
-        for (int i = 0; i < N; ++i) {
-            std::cout << A[i];
-            if (i < N - 1) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << ")" << std::endl;
-    }
-
     {
         auto start = std::chrono::high_resolution_clock::now();
 
@@ -151,35 +159,37 @@ long bench(quicksort_fn quicksrt, bool print) {
 
         auto finish = std::chrono::high_resolution_clock::now();
         time = std::chrono::duration_cast<std::chrono::nanoseconds>(finish - start).count();
+
+        bool sorted = is_sorted(A, N);
+        assert(sorted);
     }
 
+    return time;
+}
 
-    if (print) {
-        //std::cout << "hello world" << std::endl;
-        std::cout << "A(sorted): " << std::endl;
-        std::cout << "(";
-        for (int i = 0; i < N; ++i) {
-            std::cout << A[i];
-            if (i < N - 1) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << ")";
-        std::cout << std::endl;
+void print_array(int *A, int N)
+{
+    for (int i = 0; i < N; ++i) {
+        std::cout << A[i] << ", ";
     }
 }
 
-int main() {
+int main()
+{
 #pragma omp parallel
     {
-#pragma omp single
-        long seq = bench(quicksort, false);
-        //long par = bench(quicksort_par, false);
-        long cutoff = bench(quicksort_cutoff, false);
-        std::cout << "sequential version: " << seq/(1000*1000) << "ms" << std::endl;
-        //std::cout << "parallel version: " << par/(1000*1000) << "ms" << std::endl;
-        std::cout << "cutoff version: " << cutoff/(1000*1000) << "ms" << std::endl;
-        std::cout << "tasks used: " << tasks_spawned << std::endl;
+#pragma omp master
+        {
+            std::cout << "number of threads used: " << omp_get_max_threads() << std::endl;
+            long seq = bench(quicksort, false);
+            //long par = bench(quicksort_par, false);
+            long cutoff = bench(quicksort_cutoff, false);
+            std::cout << "sequential version: " << seq / (1000 * 1000) << "ms" << std::endl;
+            //std::cout << "parallel version: " << par / (1000 * 1000) << "ms" << std::endl;
+            std::cout << "cutoff version: " << cutoff / (1000 * 1000) << "ms" << std::endl;
+            std::cout << "tasks used: " << tasks_spawned << std::endl;
+            std::cout << "speedup: " << (double) (seq) / cutoff << std::endl;
+            std::cout << "##################################" << std::endl;
+        }
     };
-    return 0;
 }
