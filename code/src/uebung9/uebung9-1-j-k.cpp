@@ -35,5 +35,9 @@ int main() {
     std::cout << "Average used time (averaged over " << loopCount << " runs) in ms : "
               << (time / loopCount) / 1000 / 1000 << std::endl;
 
+    delete[] A;
+    delete[] B;
+    delete[] C;
+
     return 0;
 }
