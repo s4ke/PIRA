@@ -54,9 +54,9 @@ void quicksort_par(int *A, int left, int right, std::mt19937 rng) {
     swap(A, left, last);
 
 #pragma omp task
-    quicksort(A, left, last, rng);
+    quicksort_par(A, left, last, rng);
 #pragma omp task
-    quicksort(A, last + 1, right, rng);
+    quicksort_par(A, last + 1, right, rng);
 #pragma omp taskwait
 }
 
