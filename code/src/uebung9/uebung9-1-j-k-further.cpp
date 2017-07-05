@@ -7,7 +7,8 @@ void loop(double *A, double *B, double *C, int n)
 {
     int i, k, j;
     auto innerStart = std::chrono::high_resolution_clock::now();
-#pragma omp for schedule (static)
+    // strategy is set here:
+#pragma omp for schedule (guided)
     for (i = 0; i < n; ++i) {
         //std::cout << "thread " << omp_get_thread_num() << " did outer loop iteration i:" << i << std::endl;
         for (k = 0; k < n; ++k) {
@@ -28,6 +29,10 @@ int main()
 {
 #pragma omp parallel
     {
+#pragma omp master
+        {
+           std::cout << omp_get_num_threads() << std::endl;
+        };
         int n = 1000;
 
         std::mt19937 rng(12354);
