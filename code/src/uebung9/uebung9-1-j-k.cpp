@@ -19,6 +19,7 @@ int main() {
 
     int loopCount = 3;
     double time = 0;
+
     for (int z = 0; z < loopCount; ++z) {
         auto start = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < n; ++i) {
